@@ -40,7 +40,7 @@ def coupledvdp(Y, t, p, G, coupling_term, equation, node_number):
         neighbor_info = G.pred if G.is_directed() else G
         coupling_terms = np.zeros((1,p[0]))
         for nbr,dataset in G[node].items():
-            wt = dataset['weight']
+            wt = dataset.get('weight',1)
             m = node_number[nbr]
             coupling_terms += float(wt)*np.dot(coupling_term,Y[m*p[0]:(m+1)*p[0]])
             coupling_terms -= float(wt)*diag
@@ -69,7 +69,7 @@ def graphyz(solution,p):
     j = 1
     label = []
     while i < len(solution[0,:]):
-        plt.subplot(2,2,j)
+        plt.subplot(1,len(solution[0,:])/p[0],j)
         plt.plot(solution[:,i],solution[:,i+1],label = "osci"+str(j))
         i += p[0]
         j += 1
@@ -93,13 +93,7 @@ def graphzt(solution,p,t):
 
 # main function
 # solve ode and generate graphs
-def simulate(equation,graph,coupling_term):
-    # in the future will get from user input
-    # coefficient
-    mu = 2
-
-    # number of equations
-    num = 2
+def simulate(equation,param,t,graph,coupling_term):
 
     # adjacent matrix
     # will get from network
@@ -114,9 +108,7 @@ def simulate(equation,graph,coupling_term):
     for i in range(len(graph)):
         node_number[list(graph)[i]] = i
 
-    param = [num,mu]
 
-    t = np.linspace(0, 100, 500)
     
     sol = odeint(coupledvdp, Y0, t, args=(param,graph,coupling_term,equation, node_number))
 
@@ -124,6 +116,7 @@ def simulate(equation,graph,coupling_term):
     graphzt(sol,param,t)
     graphyz(sol,param)
     #plt.savefig('vanderpol2.png')
+    return (t,sol)
 
 
 #main()
